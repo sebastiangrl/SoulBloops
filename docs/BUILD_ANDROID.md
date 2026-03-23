@@ -41,7 +41,7 @@ Copia y pega **todo** el comando (es una sola línea):
 ```bash
 keytool -genkey -v -keystore soul-bloops.jks -alias soul -keyalg RSA -keysize 2048 -validity 10000
 ```
-studio2299Jhon
+
 Te irá preguntando cosas. Guía rápida:
 
 1. **Contraseña del almacén de claves** → inventa una y **apúntala**. Esa será `ANDROID_KEYSTORE_PASSWORD` en GitHub.
@@ -95,6 +95,17 @@ base64 -i soul-bloops.jks | tr -d '\n'
 | `ANDROID_KEY_PASSWORD` | La contraseña de la **clave**; si en el Paso 2 pulsaste Enter, es **la misma** que `ANDROID_KEYSTORE_PASSWORD`. |
 
 5. Guarda cada uno con **Add secret**.
+
+#### ¿Repository secrets o Environment secrets?
+
+Para **este proyecto**, el workflow **`.github/workflows/android.yml`** usa `secrets.ANDROID_*` **sin** definir un `environment:` en el job. Eso significa que GitHub inyecta los **secretos del repositorio** (pestaña **Actions** → *Repository secrets*) o, si existen, los de la **organización** con el mismo nombre.
+
+| Dónde | Cuándo usarlo |
+|--------|----------------|
+| **Repository secrets** | Caso habitual: una app, un keystore de release, sin reglas extra. Es lo que describe el Paso 4 (**New repository secret**). |
+| **Environment secrets** | Si creas un entorno (p. ej. `production`) en **Settings → Environments**, añades `environment: production` al job en el YAML y pones allí los secretos. Sirve para **aprobar despliegues**, ramas permitidas o secretos distintos por entorno (staging vs producción). |
+
+Si usas solo **Environment secrets** y **no** duplicas los nombres en *Repository secrets*, el workflow actual **no** los verá hasta que añadas `environment: …` al job (o copies los secretos al nivel repositorio).
 
 ### Paso 5 — Vuelve a generar el AAB en Actions
 

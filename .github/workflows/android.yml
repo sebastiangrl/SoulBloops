@@ -15,6 +15,9 @@ concurrency:
 jobs:
   bundle:
     runs-on: ubuntu-latest
+    # `secrets` no se puede usar en `if:` de los steps; se evalúa aquí y se lee vía `env`.
+    env:
+      HAS_ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -66,7 +69,7 @@ jobs:
 
       - name: Decodificar keystore (solo si hay secretos)
         id: signing
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        if: ${{ env.HAS_ANDROID_KEYSTORE == 'true' }}
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -83,21 +86,21 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: Gradle bundleRelease (firmado para Play)
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        if: ${{ env.HAS_ANDROID_KEYSTORE == 'true' }}
         working-directory: android
         env:
           GRADLE_OPTS: -Xmx3g
         run: chmod +x gradlew && ./gradlew --no-daemon bundleRelease
 
       - name: Gradle bundleDebug (pruebas sin keystore en GitHub)
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 == '' }}
+        if: ${{ env.HAS_ANDROID_KEYSTORE != 'true' }}
         working-directory: android
         env:
           GRADLE_OPTS: -Xmx3g
         run: chmod +x gradlew && ./gradlew --no-daemon bundleDebug
 
       - name: Subir AAB release
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        if: ${{ env.HAS_ANDROID_KEYSTORE == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: soul-bloops-release
@@ -105,7 +108,7 @@ jobs:
           if-no-files-found: error
 
       - name: Subir AAB debug
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 == '' }}
+        if: ${{ env.HAS_ANDROID_KEYSTORE != 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: soul-bloops-debug
