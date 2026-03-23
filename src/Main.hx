@@ -10,6 +10,7 @@ import game.AudioHub;
 import game.Backgrounds;
 import game.GameFonts;
 import game.GameFeel;
+import game.I18n;
 import game.Grid;
 import game.Haptics;
 import game.BloopSprites;
@@ -631,13 +632,14 @@ class Main extends hxd.App {
 			goAdPending = false;
 			setGameOverButtonsEnabled(true);
 			if (goHintEl != null) {
-				goHintEl.textContent = "Los anuncios premiados estarán en la app para Android.";
+				goHintEl.textContent = I18n.t("gameOver.adHint");
 				goHintEl.classList.add("soul-bloops-go-hint--visible");
 			}
 		});
 	}
 
 	function initTitleAndSettingsDom():Void {
+		I18n.init();
 		AudioHub.loadPersistedSettings();
 		splashRootEl = Browser.document.getElementById("soulBloopsSplash");
 		splashFrameEl = Browser.document.getElementById("soulBloopsSplashFrame");
@@ -715,6 +717,15 @@ class Main extends hxd.App {
 				AudioHub.setMuted(ch.checked);
 				syncAudioControlsFromHub();
 			};
+		var langSel = Browser.document.getElementById("soulBloopsLangSelect");
+		if (langSel != null) {
+			untyped (cast langSel : js.html.SelectElement).value = I18n.current;
+			langSel.onchange = function(_e:js.html.Event) {
+				var sel:js.html.SelectElement = cast langSel;
+				I18n.setLocale(sel.value);
+				sel.value = I18n.current;
+			};
+		}
 		syncAudioControlsFromHub();
 		startSplashSequence();
 	}
@@ -956,6 +967,7 @@ class Main extends hxd.App {
 			setGameOverButtonsEnabled(true);
 			goOverlay.classList.remove("soul-bloops-go--hidden");
 			goOverlay.setAttribute("aria-hidden", "false");
+			I18n.applyDom();
 			return;
 		}
 		#end
@@ -976,12 +988,12 @@ class Main extends hxd.App {
 
 		var titleFont = GameFonts.getUi();
 		var title = new Text(titleFont, gameOverRoot);
-		title.text = "Sin movimientos";
+		title.text = I18n.t("gameOver.title");
 		title.textColor = 0xf0e8ff;
 		title.textAlign = Center;
 		title.scale(1.15);
 		var sub = new Text(titleFont, gameOverRoot);
-		sub.text = "Puntuación: " + score + "\n\nToca para jugar de nuevo";
+		sub.text = I18n.tf("gameOver.heapSub", [Std.string(score)]);
 		sub.textColor = 0xc8b8ff;
 		sub.textAlign = Center;
 		sub.scale(0.72);

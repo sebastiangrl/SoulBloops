@@ -7,6 +7,7 @@ import h2d.Text;
 import h2d.Text.Align;
 import h2d.Tile;
 import game.GameFonts;
+import game.I18n;
 
 /**
 	Partículas, flash y shake en clears. Requiere `step(dt)` desde `Main.update`.
@@ -76,15 +77,15 @@ class GameFeel {
 		var msg:Null<String> = null;
 		var scale = 2.45;
 		if (clearStreak >= 2)
-			msg = "¡Racha ×" + clearStreak + "!";
+			msg = I18n.tf("feel.comboStreak", [Std.string(clearStreak)]);
 		else if (lineCount >= 4) {
-			msg = "¡Brutal!";
+			msg = I18n.t("feel.brutal");
 			scale = 2.75;
 		} else if (lineCount >= 3) {
-			msg = "¡Genial!";
+			msg = I18n.t("feel.great");
 			scale = 2.65;
 		} else if (lineCount >= 2)
-			msg = "¡Líneas ×" + lineCount + "!";
+			msg = I18n.tf("feel.linesMult", [Std.string(lineCount)]);
 		if (msg == null)
 			return;
 		var t = new Text(GameFonts.getUi(), scene);
@@ -122,7 +123,7 @@ class GameFeel {
 		}
 		var t = new Text(GameFonts.getUi(), scene);
 		t.textAlign = Center;
-		t.text = "¡Tablero limpio!\n+" + bonusPts;
+		t.text = I18n.tf("feel.boardClear", [Std.string(bonusPts)]);
 		t.textColor = gold;
 		t.scale(2.35);
 		t.x = grid.x + gw() * 0.5;

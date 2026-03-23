@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
@@ -451,68 +451,76 @@
 				<img id="soulBloopsSplashStudio" class="soul-bloops-splash-img" src="res/img/ui/studio-sylf.png" alt="Studio Sylf" decoding="async" fetchpriority="high" />
 				<img id="soulBloopsSplashGame" class="soul-bloops-splash-img soul-bloops-splash-img--hidden" src="res/img/ui/soul-bloops.png" alt="Soul Bloops" decoding="async" />
 			</div>
-			<p class="soul-bloops-splash-hint">Toca para saltar</p>
+			<p class="soul-bloops-splash-hint" data-i18n="splash.skip">Tap to skip</p>
 		</div>
 	</div>
-	<button type="button" id="soulBloopsSettingsFab" aria-label="Ajustes" title="Ajustes">⚙</button>
+	<button type="button" id="soulBloopsSettingsFab" data-i18n-aria="settings.fabAria" data-i18n-title="settings.fabAria" aria-label="Settings" title="Settings">⚙</button>
 	<div id="soulBloopsMainMenu" class="soul-bloops-main-menu--hidden" aria-hidden="true">
 		<div class="soul-bloops-main-inner">
 			<img class="soul-bloops-logo-main" src="res/img/ui/LogoSoulBloops.png" width="340" height="120" alt="Soul Bloops" decoding="async" fetchpriority="high" />
 			<div class="soul-bloops-main-buttons">
-				<button type="button" id="soulBloopsBtnPlay" class="soul-bloops-menu-btn soul-bloops-menu-btn--primary">Jugar</button>
-				<button type="button" id="soulBloopsBtnHow" class="soul-bloops-menu-btn soul-bloops-menu-btn--secondary">Cómo jugar</button>
+				<button type="button" id="soulBloopsBtnPlay" class="soul-bloops-menu-btn soul-bloops-menu-btn--primary" data-i18n="menu.play">Play</button>
+				<button type="button" id="soulBloopsBtnHow" class="soul-bloops-menu-btn soul-bloops-menu-btn--secondary" data-i18n="menu.howTo">How to play</button>
 			</div>
 		</div>
 	</div>
 	<div id="soulBloopsSettingsModal" class="soul-bloops-modal--hidden" aria-hidden="true">
 		<div class="soul-bloops-settings-card" role="dialog" aria-modal="true" aria-labelledby="soulBloopsSettingsTitle">
-			<h2 id="soulBloopsSettingsTitle">Ajustes</h2>
+			<h2 id="soulBloopsSettingsTitle" data-i18n="settings.title">Settings</h2>
 			<label class="soul-bloops-settings-muted">
 				<input type="checkbox" id="soulBloopsMuteToggle" />
-				Silenciar sonido
+				<span data-i18n="settings.mute">Mute sound</span>
 			</label>
 			<div class="soul-bloops-settings-row">
-				<label for="soulBloopsVolumeSlider">Volumen</label>
+				<label for="soulBloopsVolumeSlider" data-i18n="settings.volume">Volume</label>
 				<input type="range" id="soulBloopsVolumeSlider" min="0" max="100" value="100" step="1" />
 			</div>
+			<div class="soul-bloops-settings-row">
+				<label for="soulBloopsLangSelect" data-i18n="settings.language">Language</label>
+				<select id="soulBloopsLangSelect" style="width:100%; padding:10px 12px; border-radius:12px; font-family:inherit; font-size:1.05rem; background:rgba(30,26,48,0.95); border:1px solid rgba(200,184,255,0.28); color:#e8e4f5;">
+					<option value="en" data-i18n="settings.langEn">English</option>
+					<option value="es" data-i18n="settings.langEs">Español</option>
+					<option value="ja" data-i18n="settings.langJa">日本語</option>
+				</select>
+			</div>
 			<div class="soul-bloops-settings-actions">
-				<button type="button" id="soulBloopsBtnReplay" class="soul-bloops-go-btn soul-bloops-go-btn--primary">Reiniciar partida</button>
-				<button type="button" id="soulBloopsBtnMainMenu" class="soul-bloops-go-btn soul-bloops-go-btn--secondary">Menú principal</button>
-				<button type="button" id="soulBloopsBtnSettingsClose" class="soul-bloops-go-btn soul-bloops-go-btn--secondary">Cerrar</button>
+				<button type="button" id="soulBloopsBtnReplay" class="soul-bloops-go-btn soul-bloops-go-btn--primary" data-i18n="settings.restart">Restart game</button>
+				<button type="button" id="soulBloopsBtnMainMenu" class="soul-bloops-go-btn soul-bloops-go-btn--secondary" data-i18n="settings.mainMenu">Main menu</button>
+				<button type="button" id="soulBloopsBtnSettingsClose" class="soul-bloops-go-btn soul-bloops-go-btn--secondary" data-i18n="settings.close">Close</button>
 			</div>
 		</div>
 	</div>
 	<div id="soulBloopsHowToModal" class="soul-bloops-modal--hidden" aria-hidden="true">
 		<div class="soul-bloops-howto-card" role="dialog" aria-modal="true" aria-labelledby="soulBloopsHowToTitle">
-			<h2 id="soulBloopsHowToTitle">Cómo jugar</h2>
+			<h2 id="soulBloopsHowToTitle" data-i18n="howTo.title">How to play</h2>
 			<ul>
-				<li>Arrastra las piezas del carril al tablero de 8×8.</li>
-				<li>Completa una fila o columna entera para limpiarla y sumar puntos.</li>
-				<li>Cuando coloques las tres piezas del turno, recibirás un nuevo trío.</li>
-				<li>Si no puedes colocar ninguna pieza, la partida termina (¡a menos que revivas con un anuncio!).</li>
+				<li data-i18n="howTo.li1">Drag pieces from the rail to the 8×8 board.</li>
+				<li data-i18n="howTo.li2">Complete a full row or column to clear it and score points.</li>
+				<li data-i18n="howTo.li3">When you place all three pieces in the turn, you get a new trio.</li>
+				<li data-i18n="howTo.li4">If you can’t place any piece, the game ends (unless you revive with an ad!).</li>
 			</ul>
-			<button type="button" id="soulBloopsBtnHowClose" class="soul-bloops-go-btn soul-bloops-go-btn--secondary" style="margin-top: 16px; width: 100%;">Cerrar</button>
+			<button type="button" id="soulBloopsBtnHowClose" class="soul-bloops-go-btn soul-bloops-go-btn--secondary" style="margin-top: 16px; width: 100%;" data-i18n="howTo.close">Close</button>
 		</div>
 	</div>
 	<span id="soulBloopsScore" aria-live="polite">0</span>
-	<span id="soulBloopsHighScore" aria-label="Mejor puntuación">
+	<span id="soulBloopsHighScore" data-i18n-aria="hud.bestScoreAria" aria-label="High score">
 		<img class="soul-bloops-crown" id="soulBloopsCrown" src="res/img/ui/corona.png" alt="" />
 		<span class="soul-bloops-high-score-value" id="soulBloopsHighScoreValue">0</span>
 	</span>
 	<div id="soulBloopsGameOver" class="soul-bloops-go--hidden" aria-hidden="true">
 		<div class="soul-bloops-go-card" role="dialog" aria-modal="true" aria-labelledby="soulBloopsGoTitle">
-			<h2 id="soulBloopsGoTitle" class="soul-bloops-go-title">Sin movimientos</h2>
-			<p class="soul-bloops-go-score">Puntuación: <span id="soulBloopsGoScore">0</span></p>
+			<h2 id="soulBloopsGoTitle" class="soul-bloops-go-title" data-i18n="gameOver.title">No moves left</h2>
+			<p class="soul-bloops-go-score"><span data-i18n="gameOver.scoreLabel">Score:</span> <span id="soulBloopsGoScore">0</span></p>
 			<p id="soulBloopsGoHint" class="soul-bloops-go-hint" aria-live="polite"></p>
 			<div class="soul-bloops-go-actions">
 				<button type="button" id="soulBloopsGoRevive" class="soul-bloops-go-btn soul-bloops-go-btn--primary">
-					Revivir<span class="soul-bloops-go-btn-sub">Ver anuncio (1 por partida)</span>
+					<span data-i18n="gameOver.revive">Revive</span><span class="soul-bloops-go-btn-sub" data-i18n="gameOver.reviveSub">Watch ad (1 per match)</span>
 				</button>
-				<button type="button" id="soulBloopsGoRestart" class="soul-bloops-go-btn soul-bloops-go-btn--secondary">Jugar de nuevo</button>
+				<button type="button" id="soulBloopsGoRestart" class="soul-bloops-go-btn soul-bloops-go-btn--secondary" data-i18n="gameOver.playAgain">Play again</button>
 			</div>
 		</div>
 	</div>
 	<!-- ?v= fuerza recarga del JS (caché agresiva suele dejar piezas “sin escala” del build viejo). -->
-	<script type="text/javascript" src="bin/game.js?v=53"></script>
+	<script type="text/javascript" src="bin/game.js?v=54"></script>
 </body>
 </html>

@@ -806,13 +806,14 @@ Main.prototype = $extend(hxd_App.prototype,{
 			_gthis.goAdPending = false;
 			_gthis.setGameOverButtonsEnabled(true);
 			if(_gthis.goHintEl != null) {
-				_gthis.goHintEl.textContent = "Los anuncios premiados estarán en la app para Android.";
+				_gthis.goHintEl.textContent = game_I18n.t("gameOver.adHint");
 				_gthis.goHintEl.classList.add("soul-bloops-go-hint--visible");
 			}
 		});
 	}
 	,initTitleAndSettingsDom: function() {
 		var _gthis = this;
+		game_I18n.init();
 		game_AudioHub.loadPersistedSettings();
 		this.splashRootEl = window.document.getElementById("soulBloopsSplash");
 		this.splashFrameEl = window.document.getElementById("soulBloopsSplashFrame");
@@ -904,6 +905,15 @@ Main.prototype = $extend(hxd_App.prototype,{
 				var ch = _gthis.muteToggleEl;
 				game_AudioHub.setMuted(ch.checked);
 				_gthis.syncAudioControlsFromHub();
+			};
+		}
+		var langSel = window.document.getElementById("soulBloopsLangSelect");
+		if(langSel != null) {
+			langSel.value = game_I18n.current;
+			langSel.onchange = function(_e) {
+				var sel = langSel;
+				game_I18n.setLocale(sel.value);
+				sel.value = game_I18n.current;
 			};
 		}
 		this.syncAudioControlsFromHub();
@@ -1198,6 +1208,7 @@ Main.prototype = $extend(hxd_App.prototype,{
 			this.setGameOverButtonsEnabled(true);
 			this.goOverlay.classList.remove("soul-bloops-go--hidden");
 			this.goOverlay.setAttribute("aria-hidden","false");
+			game_I18n.applyDom();
 			return;
 		}
 		this.showGameOverHeaps();
@@ -1215,7 +1226,7 @@ Main.prototype = $extend(hxd_App.prototype,{
 		};
 		var titleFont = game_GameFonts.getUi();
 		var title = new h2d_Text(titleFont,this.gameOverRoot);
-		title.set_text("Sin movimientos");
+		title.set_text(game_I18n.t("gameOver.title"));
 		title.set_textColor(15788287);
 		title.set_textAlign(h2d_Align.Center);
 		title.posChanged = true;
@@ -1223,7 +1234,7 @@ Main.prototype = $extend(hxd_App.prototype,{
 		title.posChanged = true;
 		title.scaleY *= 1.15;
 		var sub = new h2d_Text(titleFont,this.gameOverRoot);
-		sub.set_text("Puntuación: " + this.score + "\n\nToca para jugar de nuevo");
+		sub.set_text(game_I18n.tf("gameOver.heapSub",[Std.string(this.score)]));
 		sub.set_textColor(13154559);
 		sub.set_textAlign(h2d_Align.Center);
 		sub.posChanged = true;
@@ -5688,15 +5699,15 @@ game_GameFeel.prototype = {
 		var msg = null;
 		var scale = 2.45;
 		if(clearStreak >= 2) {
-			msg = "¡Racha ×" + clearStreak + "!";
+			msg = game_I18n.tf("feel.comboStreak",[clearStreak == null ? "null" : "" + clearStreak]);
 		} else if(lineCount >= 4) {
-			msg = "¡Brutal!";
+			msg = game_I18n.t("feel.brutal");
 			scale = 2.75;
 		} else if(lineCount >= 3) {
-			msg = "¡Genial!";
+			msg = game_I18n.t("feel.great");
 			scale = 2.65;
 		} else if(lineCount >= 2) {
-			msg = "¡Líneas ×" + lineCount + "!";
+			msg = game_I18n.tf("feel.linesMult",[lineCount == null ? "null" : "" + lineCount]);
 		}
 		if(msg == null) {
 			return;
@@ -5739,7 +5750,7 @@ game_GameFeel.prototype = {
 		}
 		var t = new h2d_Text(game_GameFonts.getUi(),this.scene);
 		t.set_textAlign(h2d_Align.Center);
-		t.set_text("¡Tablero limpio!\n+" + bonusPts);
+		t.set_text(game_I18n.tf("feel.boardClear",[bonusPts == null ? "null" : "" + bonusPts]));
 		t.set_textColor(gold);
 		t.posChanged = true;
 		t.scaleX *= 2.35;
@@ -10236,6 +10247,143 @@ game_Haptics.clearLines = function(lineCount) {
 			navigator.vibrate(22);
 		}
 	}
+};
+var game_I18n = function() { };
+$hxClasses["game.I18n"] = game_I18n;
+game_I18n.__name__ = "game.I18n";
+game_I18n.addLocale = function(code,pairs) {
+	var m = new haxe_ds_StringMap();
+	var i = 0;
+	while(i + 1 < pairs.length) {
+		m.h[pairs[i]] = pairs[i + 1];
+		i += 2;
+	}
+	game_I18n.strings.h[code] = m;
+};
+game_I18n.ensureMaps = function() {
+	if(game_I18n.strings != null) {
+		return;
+	}
+	game_I18n.strings = new haxe_ds_StringMap();
+	game_I18n.addLocale("en",["splash.skip","Tap to skip","menu.play","Play","menu.howTo","How to play","settings.title","Settings","settings.mute","Mute sound","settings.volume","Volume","settings.language","Language","settings.langEn","English","settings.langEs","Español","settings.langJa","日本語","settings.restart","Restart game","settings.mainMenu","Main menu","settings.close","Close","settings.fabAria","Settings","howTo.title","How to play","howTo.li1","Drag pieces from the rail to the 8×8 board.","howTo.li2","Complete a full row or column to clear it and score points.","howTo.li3","When you place all three pieces in the turn, you get a new trio.","howTo.li4","If you can’t place any piece, the game ends (unless you revive with an ad!).","howTo.close","Close","gameOver.title","No moves left","gameOver.scoreLabel","Score:","gameOver.revive","Revive","gameOver.reviveSub","Watch ad (1 per match)","gameOver.playAgain","Play again","gameOver.adHint","Rewarded ads will be in the Android app.","gameOver.heapSub","Score: {0}\n\nTap to play again","hud.bestScoreAria","High score","feel.comboStreak","Streak ×{0}!","feel.brutal","Brutal!","feel.great","Awesome!","feel.linesMult","Lines ×{0}!","feel.boardClear","Board clear!\n+{0}"]);
+	game_I18n.addLocale("es",["splash.skip","Toca para saltar","menu.play","Jugar","menu.howTo","Cómo jugar","settings.title","Ajustes","settings.mute","Silenciar sonido","settings.volume","Volumen","settings.language","Idioma","settings.langEn","Inglés","settings.langEs","Español","settings.langJa","Japonés","settings.restart","Reiniciar partida","settings.mainMenu","Menú principal","settings.close","Cerrar","settings.fabAria","Ajustes","howTo.title","Cómo jugar","howTo.li1","Arrastra las piezas del carril al tablero de 8×8.","howTo.li2","Completa una fila o columna entera para limpiarla y sumar puntos.","howTo.li3","Cuando coloques las tres piezas del turno, recibirás un nuevo trío.","howTo.li4","Si no puedes colocar ninguna pieza, la partida termina (¡a menos que revivas con un anuncio!).","howTo.close","Cerrar","gameOver.title","Sin movimientos","gameOver.scoreLabel","Puntuación:","gameOver.revive","Revivir","gameOver.reviveSub","Ver anuncio (1 por partida)","gameOver.playAgain","Jugar de nuevo","gameOver.adHint","Los anuncios premiados estarán en la app para Android.","gameOver.heapSub","Puntuación: {0}\n\nToca para jugar de nuevo","hud.bestScoreAria","Mejor puntuación","feel.comboStreak","¡Racha ×{0}!","feel.brutal","¡Brutal!","feel.great","¡Genial!","feel.linesMult","¡Líneas ×{0}!","feel.boardClear","¡Tablero limpio!\n+{0}"]);
+	game_I18n.addLocale("ja",["splash.skip","タップでスキップ","menu.play","プレイ","menu.howTo","遊び方","settings.title","設定","settings.mute","音をミュート","settings.volume","音量","settings.language","言語","settings.langEn","English","settings.langEs","Español","settings.langJa","日本語","settings.restart","ゲームを再開","settings.mainMenu","メインメニュー","settings.close","閉じる","settings.fabAria","設定","howTo.title","遊び方","howTo.li1","レールから8×8の盤へピースをドラッグ。","howTo.li2","行か列を1本そろえると消去して得点。","howTo.li3","3つ置き終えると新しい3つが届く。","howTo.li4","どれも置けなくなると終了（広告で復活できる場合あり）。","howTo.close","閉じる","gameOver.title","手がない","gameOver.scoreLabel","スコア:","gameOver.revive","復活","gameOver.reviveSub","広告を見る（1試合1回）","gameOver.playAgain","もう一度","gameOver.adHint","リワード広告はAndroidアプリで利用できます。","gameOver.heapSub","スコア: {0}\n\nタップでもう一度","hud.bestScoreAria","ハイスコア","feel.comboStreak","コンボ ×{0}！","feel.brutal","激！","feel.great","ナイス！","feel.linesMult","ライン×{0}！","feel.boardClear","盤面クリア！\n+{0}"]);
+};
+game_I18n.init = function() {
+	game_I18n.ensureMaps();
+	game_I18n.current = game_I18n.resolveLocaleJs();
+	game_I18n.applyDom();
+	game_I18n.syncHtmlLang();
+};
+game_I18n.resolveLocaleJs = function() {
+	try {
+		var ls = window.localStorage;
+		if(ls != null) {
+			var s = ls.getItem("soulBloops_locale");
+			if(s == "en" || s == "es" || s == "ja") {
+				return s;
+			}
+		}
+	} catch( _g ) {
+	}
+	var nav = $global.navigator;
+	var lang = nav.language;
+	if((lang == null || lang == "") && (nav.languages != null && nav.languages.length > 0)) {
+		lang = nav.languages[0];
+	}
+	if(lang != null) {
+		var low = lang.toLowerCase();
+		if(StringTools.startsWith(low,"ja")) {
+			return "ja";
+		}
+		if(StringTools.startsWith(low,"es")) {
+			return "es";
+		}
+	}
+	return "en";
+};
+game_I18n.setLocale = function(l) {
+	if(l != "en" && l != "es" && l != "ja") {
+		return;
+	}
+	game_I18n.current = l;
+	try {
+		var ls = window.localStorage;
+		if(ls != null) {
+			ls.setItem("soulBloops_locale",l);
+		}
+	} catch( _g ) {
+	}
+	game_I18n.applyDom();
+	game_I18n.syncHtmlLang();
+};
+game_I18n.applyDom = function() {
+	game_I18n.ensureMaps();
+	var doc = window.document;
+	var nodes = doc.querySelectorAll("[data-i18n]");
+	var _g = 0;
+	var _g1 = nodes.length;
+	while(_g < _g1) {
+		var i = _g++;
+		var el = nodes.item(i);
+		var k = el.getAttribute("data-i18n");
+		if(k != null && k != "") {
+			el.textContent = game_I18n.t(k);
+		}
+	}
+	var ariaNodes = doc.querySelectorAll("[data-i18n-aria]");
+	var _g = 0;
+	var _g1 = ariaNodes.length;
+	while(_g < _g1) {
+		var i = _g++;
+		var el = ariaNodes.item(i);
+		var k = el.getAttribute("data-i18n-aria");
+		if(k != null && k != "") {
+			el.setAttribute("aria-label",game_I18n.t(k));
+		}
+	}
+	var titleNodes = doc.querySelectorAll("[data-i18n-title]");
+	var _g = 0;
+	var _g1 = titleNodes.length;
+	while(_g < _g1) {
+		var i = _g++;
+		var el = titleNodes.item(i);
+		var k = el.getAttribute("data-i18n-title");
+		if(k != null && k != "") {
+			el.setAttribute("title",game_I18n.t(k));
+		}
+	}
+};
+game_I18n.syncHtmlLang = function() {
+	var h = window.document.documentElement;
+	h.lang = game_I18n.current == "ja" ? "ja" : game_I18n.current == "es" ? "es" : "en";
+};
+game_I18n.t = function(key) {
+	game_I18n.ensureMaps();
+	var m = game_I18n.strings.h[game_I18n.current];
+	if(m == null) {
+		m = game_I18n.strings.h["en"];
+	}
+	var v = m.h[key];
+	if(v == null) {
+		m = game_I18n.strings.h["en"];
+		v = m.h[key];
+	}
+	if(v != null) {
+		return v;
+	} else {
+		return key;
+	}
+};
+game_I18n.tf = function(key,args) {
+	var s = game_I18n.t(key);
+	var _g = 0;
+	var _g1 = args.length;
+	while(_g < _g1) {
+		var i = _g++;
+		s = StringTools.replace(s,"{" + i + "}",args[i]);
+	}
+	return s;
 };
 var game_Piece = function(sharedCellTile,targetGrid,offsets,r,g,b,pieceFillId,parent,bloopColor,cellBloopNums) {
 	this.bloopNums = null;
@@ -106618,6 +106766,8 @@ game_Grid.PREVIEW_BORDER_INNER = 16751327;
 game_Grid.PREVIEW_PARTICLE_SPAWN_PER_SEC = 58.;
 game_Grid.PREVIEW_PARTICLE_MAX = 52;
 game_Grid.POINTS_PER_LINE = 100;
+game_I18n.current = "en";
+game_I18n.LS_KEY = "soulBloops_locale";
 game_Piece.TOUCH_PADDING = 36;
 game_Piece.TRAY_SCALE = 0.52;
 game_ShapeCatalog.PLACEABLE_GUESS_TRIES = 80;
