@@ -139,6 +139,10 @@ Variables de entorno para firmar igual que en CI:
 2. Sube el **AAB** en **Prueba interna** o **Cerrada**.
 3. Rellena ficha, política de privacidad, datos y clasificación.
 
+### Código de versión (`versionCode`)
+
+Cada AAB que subes a Play debe llevar un **`versionCode` entero mayor** que el anterior (`android/app/build.gradle` → `defaultConfig`). El `versionName` (“1.0.1”, etc.) es solo lo que ve el usuario; Play bloquea si repites un `versionCode` ya usado.
+
 ### Nivel de API (targetSdk)
 
 Play exige un **targetSdk** mínimo que sube con el tiempo. Está centralizado en **`android/variables.gradle`** (`compileSdkVersion` y `targetSdkVersion`). Si la consola pide API 35 u otra superior, actualiza esos valores y vuelve a generar el AAB.
