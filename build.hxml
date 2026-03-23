@@ -1,0 +1,19 @@
+# Soul Bloops — Heaps (desarrollo rápido con HashLink o JS)
+# Requiere: haxelib install heaps
+
+-cp src
+-main Main
+-lib heaps
+
+# Descomenta el target que uses:
+# --hl bin/game.hl
+# -lib hlsdl
+# -lib hldx
+
+-js bin/game.js
+
+# Target producción Android (hxcpp) — configurar NDK / toolchain aparte.
+# Vibración: native/android/hxcpp_android_haptics.cpp + permiso VIBRATE (ver native/android/README.md)
+# -cpp bin/cpp
+# -D android
+# -lib hxcpp

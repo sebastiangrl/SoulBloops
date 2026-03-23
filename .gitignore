@@ -1,0 +1,45 @@
+# =============================================================================
+# Soul Bloops — qué NO sube al hacer `git add .`
+# (Lo demás del proyecto SÍ se versiona: fuente, android/, lockfile, workflows…)
+# Detalle: docs/GIT.md
+# =============================================================================
+
+# --- Node ---
+# El CI usa `npm ci` → hace falta **package-lock.json** en el repo (no lo ignores).
+node_modules/
+
+# --- Build intermedio web → Capacitor (se regenera con sync + en CI) ---
+build/
+
+# --- Capacitor: copia embebida del juego (bin/game.js + res/) ---
+# Se recrea con `npm run android:sync` o en GitHub Actions antes de Gradle.
+android/app/src/main/assets/public/
+
+# --- Android: cachés y salida de compilación local ---
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.iml
+
+# --- Firmas (nunca al repositorio) ---
+*.jks
+*.keystore
+android/keystore.properties
+
+# --- Entorno / editor / basura ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+.env
+.env.*
+*.log
+npm-debug.log*
+
+# --- bin/game.js ---
+# NO ignorado por defecto: si compilas (`haxe build.hxml`) y haces commit,
+# quien clone puede abrir index.html vía servidor sin tener Haxe.
+# Para obligar a compilar siempre en clone, descomenta la siguiente línea:
+# /bin/game.js

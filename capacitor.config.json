@@ -1,0 +1,8 @@
+{
+  "appId": "com.studiosylf.soulbloops",
+  "appName": "Soul Bloops",
+  "webDir": "build/android-www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

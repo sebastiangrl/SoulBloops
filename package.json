@@ -1,0 +1,18 @@
+{
+  "name": "soul-bloops",
+  "private": true,
+  "description": "Haxe/Heaps + Capacitor para empaquetar Android sin abrir Android Studio",
+  "scripts": {
+    "build:web": "haxe build.hxml && bash scripts/sync-www-for-android.sh",
+    "android:sync": "npm run build:web && npx cap sync android",
+    "android:bundle": "cd android && ./gradlew bundleRelease",
+    "android:assemble": "cd android && ./gradlew assembleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/core": "^6.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.2.0"
+  }
+}

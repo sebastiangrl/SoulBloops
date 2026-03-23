@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+	<title>Soul Bloops — Studio Sylf</title>
+	<style>
+		@font-face {
+			font-family: 'Road Rage';
+			src: url('res/fonts/RoadRage-Regular.ttf') format('truetype');
+			font-display: swap;
+		}
+		html, body {
+			margin: 0;
+			height: 100%;
+			background: #12101c;
+			overflow: hidden;
+			font-family: 'Road Rage', system-ui, sans-serif;
+		}
+		#webgl {
+			display: block;
+			width: 100%;
+			height: 100%;
+			touch-action: none;
+			outline: none;
+		}
+		/* Puntuación fuera de WebGL: siempre encima del marco (Heaps + depth/batching lo complican). */
+		#soulBloopsScore {
+			position: fixed;
+			z-index: 2;
+			pointer-events: none;
+			font-family: 'Road Rage', system-ui, sans-serif;
+			line-height: 1;
+			transform: translate(-50%, -50%);
+			text-align: center;
+			white-space: nowrap;
+			color: #c8b8ff;
+			text-shadow: 0 1px 5px rgba(0, 0, 0, 0.9);
+		}
+		#soulBloopsHighScore {
+			position: fixed;
+			z-index: 2;
+			pointer-events: none;
+			font-family: 'Road Rage', system-ui, sans-serif;
+			line-height: 1;
+			transform: translate(0, -50%);
+			display: inline-flex;
+			flex-direction: row;
+			align-items: center;
+			gap: 0.28em;
+			white-space: nowrap;
+			color: #ffffff;
+			text-shadow:
+				0 0 8px rgba(255, 255, 255, 0.45),
+				0 0 2px rgba(255, 255, 255, 0.9),
+				0 1px 4px rgba(0, 0, 0, 0.65);
+			opacity: 0.98;
+		}
+		#soulBloopsHighScore .soul-bloops-crown {
+			height: 1.35em;
+			width: auto;
+			display: block;
+			object-fit: contain;
+			flex-shrink: 0;
+			/* Halo blanco + sombra oscura muy suave para separar del fondo */
+			filter:
+				drop-shadow(0 0 4px rgba(255, 255, 255, 0.95))
+				drop-shadow(0 0 10px rgba(255, 255, 255, 0.4))
+				drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+		}
+		#soulBloopsHighScore .soul-bloops-high-score-value {
+			line-height: 1;
+			color: #ffffff;
+		}
+
+		/* Pantalla de fin de partida (DOM encima del canvas, centrada) */
+		#soulBloopsGameOver {
+			position: fixed;
+			inset: 0;
+			z-index: 12;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+			background: rgba(10, 8, 18, 0.78);
+			backdrop-filter: blur(10px);
+			-webkit-backdrop-filter: blur(10px);
+			box-sizing: border-box;
+			pointer-events: auto;
+		}
+		#soulBloopsGameOver.soul-bloops-go--hidden {
+			display: none;
+			pointer-events: none;
+		}
+		.soul-bloops-go-card {
+			width: min(400px, 100%);
+			max-width: 100%;
+			padding: 28px 24px 24px;
+			border-radius: 22px;
+			text-align: center;
+			background: linear-gradient(165deg, rgba(42, 38, 62, 0.97) 0%, rgba(22, 20, 36, 0.98) 100%);
+			border: 1px solid rgba(200, 184, 255, 0.28);
+			box-shadow:
+				0 24px 48px rgba(0, 0, 0, 0.55),
+				0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+		}
+		.soul-bloops-go-title {
+			margin: 0 0 8px;
+			font-size: clamp(1.75rem, 5.5vw, 2.35rem);
+			font-weight: 400;
+			letter-spacing: 0.02em;
+			color: #f0e8ff;
+			text-shadow: 0 2px 16px rgba(200, 184, 255, 0.35);
+		}
+		.soul-bloops-go-score {
+			margin: 0 0 20px;
+			font-size: clamp(1.2rem, 4vw, 1.5rem);
+			color: #c8b8ff;
+			text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+		}
+		.soul-bloops-go-score span {
+			color: #fff5c8;
+		}
+		.soul-bloops-go-hint {
+			display: none;
+			margin: 0 0 16px;
+			font-size: 0.95rem;
+			line-height: 1.35;
+			color: #a89cc8;
+		}
+		.soul-bloops-go-hint.soul-bloops-go-hint--visible {
+			display: block;
+		}
+		.soul-bloops-go-actions {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			margin-top: 4px;
+		}
+		.soul-bloops-go-btn {
+			font-family: inherit;
+			cursor: pointer;
+			border: none;
+			border-radius: 14px;
+			padding: 14px 18px;
+			font-size: 1.15rem;
+			letter-spacing: 0.03em;
+			transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.15s ease;
+		}
+		.soul-bloops-go-btn:active:not(:disabled) {
+			transform: scale(0.98);
+		}
+		.soul-bloops-go-btn:disabled {
+			opacity: 0.45;
+			cursor: not-allowed;
+		}
+		.soul-bloops-go-btn--primary {
+			color: #1a1228;
+			background: linear-gradient(180deg, #e8d8ff 0%, #c8b8ff 45%, #a898ee 100%);
+			box-shadow: 0 4px 20px rgba(200, 184, 255, 0.35);
+		}
+		.soul-bloops-go-btn--primary:hover:not(:disabled) {
+			box-shadow: 0 6px 28px rgba(200, 184, 255, 0.45);
+		}
+		.soul-bloops-go-btn--secondary {
+			color: #e8e4f5;
+			background: rgba(255, 255, 255, 0.06);
+			border: 1px solid rgba(200, 184, 255, 0.22);
+		}
+		.soul-bloops-go-btn--secondary:hover:not(:disabled) {
+			background: rgba(255, 255, 255, 0.1);
+		}
+		.soul-bloops-go-btn-sub {
+			display: block;
+			margin-top: 4px;
+			font-size: 0.78em;
+			font-weight: 400;
+			opacity: 0.85;
+		}
+
+		/* Menú principal */
+		#soulBloopsMainMenu {
+			position: fixed;
+			inset: 0;
+			z-index: 13;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+			background: rgba(8, 6, 14, 0.88);
+			backdrop-filter: blur(14px);
+			-webkit-backdrop-filter: blur(14px);
+			box-sizing: border-box;
+			pointer-events: auto;
+		}
+		#soulBloopsMainMenu.soul-bloops-main-menu--hidden {
+			display: none;
+			pointer-events: none;
+		}
+		.soul-bloops-main-inner {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: clamp(20px, 4vh, 32px);
+			width: min(420px, 100%);
+			max-height: 100%;
+			overflow-y: auto;
+		}
+		.soul-bloops-logo-main {
+			width: min(88%, 340px);
+			height: auto;
+			object-fit: contain;
+			filter: drop-shadow(0 8px 24px rgba(200, 184, 255, 0.25));
+		}
+		.soul-bloops-main-buttons {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			width: 100%;
+			max-width: 320px;
+		}
+		/* Splash: estudio → juego (misma zona jugable que el canvas) */
+		#soulBloopsSplash {
+			position: fixed;
+			inset: 0;
+			z-index: 14;
+			background: #12101c;
+			pointer-events: auto;
+			box-sizing: border-box;
+		}
+		#soulBloopsSplash.soul-bloops-splash--hidden {
+			display: none;
+			pointer-events: none;
+		}
+		#soulBloopsSplashFrame {
+			position: fixed;
+			overflow: hidden;
+			pointer-events: auto;
+			background: #12101c;
+		}
+		.soul-bloops-splash-stage {
+			width: 100%;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 12px;
+			padding: 16px;
+			box-sizing: border-box;
+		}
+		.soul-bloops-splash-img {
+			max-width: 82%;
+			max-height: 38%;
+			width: auto;
+			height: auto;
+			object-fit: contain;
+			filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.45));
+			transition: opacity 0.35s ease;
+		}
+		.soul-bloops-splash-img.soul-bloops-splash-img--hidden {
+			display: none;
+		}
+		.soul-bloops-splash-hint {
+			position: absolute;
+			bottom: max(14px, env(safe-area-inset-bottom));
+			left: 50%;
+			transform: translateX(-50%);
+			margin: 0;
+			font-size: 0.95rem;
+			color: #7a7198;
+			letter-spacing: 0.04em;
+			pointer-events: none;
+		}
+		.soul-bloops-menu-btn {
+			font-family: inherit;
+			cursor: pointer;
+			border: none;
+			border-radius: 14px;
+			padding: 16px 20px;
+			font-size: 1.25rem;
+			letter-spacing: 0.04em;
+			transition: transform 0.12s ease, box-shadow 0.12s ease;
+		}
+		.soul-bloops-menu-btn:active {
+			transform: scale(0.98);
+		}
+		.soul-bloops-menu-btn--primary {
+			color: #1a1228;
+			background: linear-gradient(180deg, #e8d8ff 0%, #c8b8ff 50%, #9888dd 100%);
+			box-shadow: 0 6px 24px rgba(200, 184, 255, 0.4);
+		}
+		.soul-bloops-menu-btn--secondary {
+			color: #e8e4f5;
+			background: rgba(255, 255, 255, 0.07);
+			border: 1px solid rgba(200, 184, 255, 0.25);
+		}
+		/* Ajustes: posición en px (misma caja letterbox que el juego; la fija Main.hx) */
+		#soulBloopsSettingsFab {
+			position: fixed;
+			z-index: 15;
+			padding: 0;
+			border: none;
+			border-radius: 14px;
+			cursor: pointer;
+			font-size: 1.35rem;
+			line-height: 1;
+			background: rgba(40, 36, 58, 0.92);
+			border: 1px solid rgba(200, 184, 255, 0.35);
+			color: #e8d8ff;
+			box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+			transition: transform 0.12s ease, background 0.15s ease;
+			box-sizing: border-box;
+		}
+		#soulBloopsSettingsFab:hover {
+			background: rgba(55, 50, 78, 0.95);
+		}
+		#soulBloopsSettingsFab:active {
+			transform: scale(0.95);
+		}
+
+		/* Modal ajustes */
+		#soulBloopsSettingsModal {
+			position: fixed;
+			inset: 0;
+			z-index: 16;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+			background: rgba(6, 4, 12, 0.65);
+			backdrop-filter: blur(8px);
+			-webkit-backdrop-filter: blur(8px);
+			box-sizing: border-box;
+		}
+		#soulBloopsSettingsModal.soul-bloops-modal--hidden {
+			display: none;
+			pointer-events: none;
+		}
+		.soul-bloops-settings-card {
+			width: min(380px, 100%);
+			padding: 24px 22px 20px;
+			border-radius: 20px;
+			background: linear-gradient(165deg, rgba(42, 38, 62, 0.98) 0%, rgba(22, 20, 36, 0.99) 100%);
+			border: 1px solid rgba(200, 184, 255, 0.28);
+			box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+		}
+		.soul-bloops-settings-card h2 {
+			margin: 0 0 18px;
+			font-size: 1.5rem;
+			font-weight: 400;
+			color: #f0e8ff;
+			text-align: center;
+		}
+		.soul-bloops-settings-row {
+			margin-bottom: 16px;
+		}
+		.soul-bloops-settings-row label {
+			display: block;
+			margin-bottom: 8px;
+			color: #c8b8ff;
+			font-size: 1rem;
+		}
+		#soulBloopsVolumeSlider {
+			width: 100%;
+			height: 10px;
+			accent-color: #c8b8ff;
+		}
+		.soul-bloops-settings-muted {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin-bottom: 18px;
+			color: #e8e4f5;
+			font-size: 1.05rem;
+			cursor: pointer;
+			user-select: none;
+		}
+		.soul-bloops-settings-muted input {
+			width: 1.15rem;
+			height: 1.15rem;
+			accent-color: #c8b8ff;
+		}
+		.soul-bloops-settings-actions {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			margin-top: 8px;
+		}
+		.soul-bloops-settings-actions .soul-bloops-go-btn {
+			width: 100%;
+		}
+
+		/* Cómo jugar */
+		#soulBloopsHowToModal {
+			position: fixed;
+			inset: 0;
+			z-index: 16;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+			background: rgba(6, 4, 12, 0.65);
+			backdrop-filter: blur(8px);
+			-webkit-backdrop-filter: blur(8px);
+			box-sizing: border-box;
+		}
+		#soulBloopsHowToModal.soul-bloops-modal--hidden {
+			display: none;
+			pointer-events: none;
+		}
+		.soul-bloops-howto-card {
+			width: min(400px, 100%);
+			max-height: min(70vh, 520px);
+			overflow-y: auto;
+			padding: 22px 20px 18px;
+			border-radius: 20px;
+			background: linear-gradient(165deg, rgba(42, 38, 62, 0.98) 0%, rgba(22, 20, 36, 0.99) 100%);
+			border: 1px solid rgba(200, 184, 255, 0.28);
+			color: #ddd8ee;
+			font-size: 1.05rem;
+			line-height: 1.45;
+		}
+		.soul-bloops-howto-card h2 {
+			margin: 0 0 14px;
+			font-size: 1.45rem;
+			color: #f0e8ff;
+			text-align: center;
+		}
+		.soul-bloops-howto-card ul {
+			margin: 0;
+			padding-left: 1.2em;
+		}
+		.soul-bloops-howto-card li {
+			margin-bottom: 8px;
+		}
+	</style>
+</head>
+<body>
+	<!--
+		Heaps (hxd.Window en JS) busca por defecto el canvas con id "webgl".
+		Si abres este archivo como file:// y el navegador bloquea el JS, sirve la carpeta del proyecto:
+		  cd "Soul Bloops" && python3 -m http.server 8080
+		y entra en http://localhost:8080/index.html
+	-->
+	<canvas id="webgl" tabindex="1"></canvas>
+	<div id="soulBloopsSplash">
+		<div id="soulBloopsSplashFrame">
+			<div class="soul-bloops-splash-stage">
+				<img id="soulBloopsSplashStudio" class="soul-bloops-splash-img" src="res/img/ui/studio-sylf.png" alt="Studio Sylf" decoding="async" fetchpriority="high" />
+				<img id="soulBloopsSplashGame" class="soul-bloops-splash-img soul-bloops-splash-img--hidden" src="res/img/ui/soul-bloops.png" alt="Soul Bloops" decoding="async" />
+			</div>
+			<p class="soul-bloops-splash-hint">Toca para saltar</p>
+		</div>
+	</div>
+	<button type="button" id="soulBloopsSettingsFab" aria-label="Ajustes" title="Ajustes">⚙</button>
+	<div id="soulBloopsMainMenu" class="soul-bloops-main-menu--hidden" aria-hidden="true">
+		<div class="soul-bloops-main-inner">
+			<img class="soul-bloops-logo-main" src="res/img/ui/LogoSoulBloops.png" width="340" height="120" alt="Soul Bloops" decoding="async" fetchpriority="high" />
+			<div class="soul-bloops-main-buttons">
+				<button type="button" id="soulBloopsBtnPlay" class="soul-bloops-menu-btn soul-bloops-menu-btn--primary">Jugar</button>
+				<button type="button" id="soulBloopsBtnHow" class="soul-bloops-menu-btn soul-bloops-menu-btn--secondary">Cómo jugar</button>
+			</div>
+		</div>
+	</div>
+	<div id="soulBloopsSettingsModal" class="soul-bloops-modal--hidden" aria-hidden="true">
+		<div class="soul-bloops-settings-card" role="dialog" aria-modal="true" aria-labelledby="soulBloopsSettingsTitle">
+			<h2 id="soulBloopsSettingsTitle">Ajustes</h2>
+			<label class="soul-bloops-settings-muted">
+				<input type="checkbox" id="soulBloopsMuteToggle" />
+				Silenciar sonido
+			</label>
+			<div class="soul-bloops-settings-row">
+				<label for="soulBloopsVolumeSlider">Volumen</label>
+				<input type="range" id="soulBloopsVolumeSlider" min="0" max="100" value="100" step="1" />
+			</div>
+			<div class="soul-bloops-settings-actions">
+				<button type="button" id="soulBloopsBtnReplay" class="soul-bloops-go-btn soul-bloops-go-btn--primary">Reiniciar partida</button>
+				<button type="button" id="soulBloopsBtnMainMenu" class="soul-bloops-go-btn soul-bloops-go-btn--secondary">Menú principal</button>
+				<button type="button" id="soulBloopsBtnSettingsClose" class="soul-bloops-go-btn soul-bloops-go-btn--secondary">Cerrar</button>
+			</div>
+		</div>
+	</div>
+	<div id="soulBloopsHowToModal" class="soul-bloops-modal--hidden" aria-hidden="true">
+		<div class="soul-bloops-howto-card" role="dialog" aria-modal="true" aria-labelledby="soulBloopsHowToTitle">
+			<h2 id="soulBloopsHowToTitle">Cómo jugar</h2>
+			<ul>
+				<li>Arrastra las piezas del carril al tablero de 8×8.</li>
+				<li>Completa una fila o columna entera para limpiarla y sumar puntos.</li>
+				<li>Cuando coloques las tres piezas del turno, recibirás un nuevo trío.</li>
+				<li>Si no puedes colocar ninguna pieza, la partida termina (¡a menos que revivas con un anuncio!).</li>
+			</ul>
+			<button type="button" id="soulBloopsBtnHowClose" class="soul-bloops-go-btn soul-bloops-go-btn--secondary" style="margin-top: 16px; width: 100%;">Cerrar</button>
+		</div>
+	</div>
+	<span id="soulBloopsScore" aria-live="polite">0</span>
+	<span id="soulBloopsHighScore" aria-label="Mejor puntuación">
+		<img class="soul-bloops-crown" id="soulBloopsCrown" src="res/img/ui/corona.png" alt="" />
+		<span class="soul-bloops-high-score-value" id="soulBloopsHighScoreValue">0</span>
+	</span>
+	<div id="soulBloopsGameOver" class="soul-bloops-go--hidden" aria-hidden="true">
+		<div class="soul-bloops-go-card" role="dialog" aria-modal="true" aria-labelledby="soulBloopsGoTitle">
+			<h2 id="soulBloopsGoTitle" class="soul-bloops-go-title">Sin movimientos</h2>
+			<p class="soul-bloops-go-score">Puntuación: <span id="soulBloopsGoScore">0</span></p>
+			<p id="soulBloopsGoHint" class="soul-bloops-go-hint" aria-live="polite"></p>
+			<div class="soul-bloops-go-actions">
+				<button type="button" id="soulBloopsGoRevive" class="soul-bloops-go-btn soul-bloops-go-btn--primary">
+					Revivir<span class="soul-bloops-go-btn-sub">Ver anuncio (1 por partida)</span>
+				</button>
+				<button type="button" id="soulBloopsGoRestart" class="soul-bloops-go-btn soul-bloops-go-btn--secondary">Jugar de nuevo</button>
+			</div>
+		</div>
+	</div>
+	<!-- ?v= fuerza recarga del JS (caché agresiva suele dejar piezas “sin escala” del build viejo). -->
+	<script type="text/javascript" src="bin/game.js?v=53"></script>
+</body>
+</html>
