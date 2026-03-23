@@ -139,6 +139,18 @@ Variables de entorno para firmar igual que en CI:
 2. Sube el **AAB** en **Prueba interna** o **Cerrada**.
 3. Rellena ficha, política de privacidad, datos y clasificación.
 
+### Nivel de API (targetSdk)
+
+Play exige un **targetSdk** mínimo que sube con el tiempo. Está centralizado en **`android/variables.gradle`** (`compileSdkVersion` y `targetSdkVersion`). Si la consola pide API 35 u otra superior, actualiza esos valores y vuelve a generar el AAB.
+
+### Aviso «archivo de desofuscación» (mapping)
+
+Con **`minifyEnabled false`** en `android/app/build.gradle` (configuración actual) **no** se ofusca el bytecode Java con R8/ProGuard, así que **no existe** `mapping.txt` que subir. El mensaje de Play es **informativo**: puedes ignorarlo mientras no actives minify. Activar R8 en apps Capacitor/WebView suele exigir reglas ProGuard extra; solo tiene sentido si necesitas reducir tamaño del APK nativo y estás dispuesto a mantener las reglas.
+
+### ID de publicidad (AdMob)
+
+Si **no** usas anuncios todavía, en Play Console indica que **no** usas el ID de publicidad y deja el manifiesto **sin** `com.google.android.gms.permission.AD_ID`. Cuando enlaces AdMob, añade de nuevo ese permiso y alinea la declaración en la consola (ver [ADS_ANDROID.md](ADS_ANDROID.md)).
+
 ## Más documentación
 
 - [`ADS_ANDROID.md`](ADS_ANDROID.md) — anuncios premiados (`window.soulBloopsRewardedAd`).

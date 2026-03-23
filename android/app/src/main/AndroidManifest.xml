@@ -38,4 +38,6 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Cuando enlaces AdMob y declares ID de publicidad en Play Console, vuelve a añadir:
+         <uses-permission android:name="com.google.android.gms.permission.AD_ID" /> -->
 </manifest>

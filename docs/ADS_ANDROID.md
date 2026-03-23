@@ -38,6 +38,8 @@ Dentro de `<application …>` (hermano de `<activity>`), metadatos con **tu** Ap
 
 Sin esto, el SDK puede cerrar la app o no mostrar anuncios.
 
+También debe existir (ya está en el repo) el permiso **`com.google.android.gms.permission.AD_ID`**: en **Android 13+** sin él el identificador de publicidad son solo ceros y Play Console puede marcar error si en la ficha indicaste que la app usa ID de publicidad. Si **no** usas anuncios ni analíticas con AD ID, quita ese permiso y actualiza la declaración en Play Console en su lugar.
+
 ---
 
 ## 3. Dos formas de conectar el juego
